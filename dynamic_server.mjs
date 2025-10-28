@@ -42,7 +42,7 @@ app.get('/countries/:country', (req, res) => {
     const countrySlug = req.params.country;
     const countryName = countrySlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
-    db.all('SELECT * FROM Powerplants WHERE country = ?', [countryName], (err, rows) => {
+    db.all('SELECT * FROM Powerplants WHERE country = ? OFFSET 1', [countryName], (err, rows) => {
         if (err) {
             res.status(500).type('txt').send('SQL Error');
         } else {
@@ -66,7 +66,7 @@ app.get('/countries/:country', (req, res) => {
 });
 
 app.get('/countries', (req, res) => {
-    db.all('SELECT DISTINCT country FROM Powerplants ORDER BY country', (err, rows) => {
+    db.all('SELECT DISTINCT country FROM Powerplants ORDER BY country OFFSET 1', (err, rows) => {
         if (err) {
             res.status(500).type('txt').send('SQL Error');
         } else {
@@ -93,7 +93,7 @@ app.get('/fuel-types/:type', (req, res) => {
     const fuelSlug = req.params.type;
     const fuelType = fuelSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
-    db.all('SELECT * FROM Powerplants WHERE fuel1 = ?', [fuelType], (err, rows) => {
+    db.all('SELECT * FROM Powerplants WHERE fuel1 = ? OFFSET 1', [fuelType], (err, rows) => {
         if (err) {
             res.status(500).type('txt').send('SQL Error');
         } else {
@@ -116,7 +116,7 @@ app.get('/fuel-types/:type', (req, res) => {
 });
 
 app.get('/fuel-types', (req, res) => {
-    db.all('SELECT DISTINCT fuel1 FROM Powerplants ORDER BY fuel1', (err, rows) => {
+    db.all('SELECT DISTINCT fuel1 FROM Powerplants ORDER BY fuel1 OFFSET 1', (err, rows) => {
         if (err) {
             res.status(500).type('txt').send('SQL Error');
         } else {
@@ -146,15 +146,15 @@ app.get('/power-capacities/:range', (req, res) => {
 
     switch (range) {
         case 'low':
-            query = 'SELECT * FROM Powerplants WHERE capacity BETWEEN 0 AND 7499 ORDER BY capacity';
+            query = 'SELECT * FROM Powerplants WHERE capacity BETWEEN 0 AND 7499 ORDER BY capacity OFFSET 1';
             title = 'Low Capacity Power Plants';
             break;
         case 'medium':
-            query = 'SELECT * FROM Powerplants WHERE capacity BETWEEN 7499 AND 14998 ORDER BY capacity';
+            query = 'SELECT * FROM Powerplants WHERE capacity BETWEEN 7499 AND 14998 ORDER BY capacity OFFSET 1';
             title = 'Medium Capacity Power Plants';
             break;
         case 'high':
-            query = 'SELECT * FROM Powerplants WHERE capacity > 14998 ORDER BY capacity';
+            query = 'SELECT * FROM Powerplants WHERE capacity > 14998 ORDER BY capacity OFFSET 1';
             title = 'High Capacity Power Plants';
             break;
         default:
