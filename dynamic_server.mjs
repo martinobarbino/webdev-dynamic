@@ -55,7 +55,7 @@ app.get('/countries/:country', (req, res) => {
                         powerplantList += `<tr><td>${plant.name}</td><td>${plant.capacity}</td><td>${plant.fuel1}</td></tr>`;
                     }
                     powerplantList += '</table>';
-                    let page = data.replace(/%%title%%/g, countryName);
+                    let page = data.replace(/%title%/g, countryName);
                     page = page.replace('%%powerplants%%', powerplantList);
                     res.status(200).type('html').send(page);
                 }
