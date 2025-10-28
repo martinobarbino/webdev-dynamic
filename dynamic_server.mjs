@@ -44,25 +44,7 @@ app.get('/countries/:country', (req, res) => {
     const countrySlug = req.params.country;
     const countryName = countrySlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
-    // First, get the full ordered list of all countries to determine previous/next
-    db.all('SELECT DISTINCT country FROM Powerplants WHERE country IS NOT NULL AND country != "" ORDER BY country', (err, allCountries) => {
-        if (err) {
-            res.status(500).type('txt').send('SQL Error getting country list');
-            return;
-        }
-
-        const countryNames = allCountries.map(c => c.country);
-        const currentIndex = countryNames.indexOf(countryName);
-
-        // Looping logic for previous and next
-        const prevIndex = (currentIndex - 1 + countryNames.length) % countryNames.length;
-        const nextIndex = (currentIndex + 1) % countryNames.length;
-
-        const prevLink = `/countries/${countryNames[prevIndex].replace(/ /g, '-').toLowerCase()}`;
-        const nextLink = `/countries/${countryNames[nextIndex].replace(/ /g, '-').toLowerCase()}`;
-
-        // Now, get the powerplants for the current country
-        db.all('SELECT * FROM Powerplants WHERE country = ?', [countryName], (err, rows) => {
+    db.all('SELECT * FROM Powerplants WHERE country = ?', [countryName], (err, rows) => {
         if (err) {
             res.status(500).type('txt').send('SQL Error');
         } else {
