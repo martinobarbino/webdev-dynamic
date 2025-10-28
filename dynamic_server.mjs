@@ -102,6 +102,7 @@ app.get('/fuel-types/:type', (req, res) => {
             res.status(500).type('txt').send('SQL Error');
         } else {
             fs.readFile(path.join(template, 'fuel-type.html'), 'utf-8', (err, data) => {
+                fuelSlug;
                 if (err) {
                     res.status(500).type('txt').send('File Error');
                 } else {
@@ -111,6 +112,8 @@ app.get('/fuel-types/:type', (req, res) => {
                     }
                     powerplantList += '</table>';
                     let page = data.replace(/%%fuel-type%%/g, fuelType);
+                    page = page.replace("%%img-src%%", `/images/${capacityType}.png`);
+                    page = page.replace("%%img-alt%%", `A graphic representing ${capacityType} power capacity.`);
                     page = page.replace('%%powerplants%%', powerplantList);
                     res.status(200).type('html').send(page);
                 }
@@ -177,14 +180,13 @@ app.get('/power-capacities/:range', (req, res) => {
                     res.status(500).type('txt').send('File Error');
                 } else {
                     let powerplantList = '<table><tr><th>Name</th><th>Country</th><th>Capacity (MW)</th></tr>';
-                    let capacityType = title.split()[0].toLowerCase();
                     for (const plant of rows) {
                         powerplantList += `<tr><td>${plant.name}</td><td>${plant.country}</td><td>${plant.capacity}</td></tr>`;
                     }
                     powerplantList += '</table>';
                     let page = data.replace(/%%capacity%%/g, title);
-                    page = page.replace("%%img-src%%", `/images/${capacityType}.png`);
-                    page = page.replace("%%img-alt%%", `A graphic representing ${capacityType} power capacity.`);
+                    page = page.replace("%%img-src%%", `/images/${range}.png`);
+                    page = page.replace("%%img-alt%%", `A graphic representing ${range} power capacity.`);
                     page = page.replace('%%powerplants%%', powerplantList);
                     res.status(200).type('html').send(page);
                 }
