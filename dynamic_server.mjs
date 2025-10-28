@@ -48,6 +48,9 @@ app.get('/countries/:country', (req, res) => {
         if (err) {
             res.status(500).type('txt').send('SQL Error');
         } else {
+            if (rows.length === 0) {
+                return res.status(404).type('txt').send(`Error: no data for country ${countryName}`);
+            }
             fs.readFile(path.join(template, 'country.html'), 'utf-8', (err, data) => {
                 if (err) {
                     res.status(500).type('txt').send('File Error');
@@ -103,6 +106,9 @@ app.get('/fuel-types/:type', (req, res) => {
         if (err) {
             res.status(500).type('txt').send('SQL Error');
         } else {
+            if (rows.length === 0) {
+                return res.status(404).type('txt').send(`Error: no data for fuel type ${fuelType}`);
+            }
             fs.readFile(path.join(template, 'fuel-type.html'), 'utf-8', (err, data) => {
                 fuelSlug;
                 if (err) {
@@ -180,6 +186,9 @@ app.get('/power-capacities/:range', (req, res) => {
         if (err) {
             res.status(500).type('txt').send('SQL Error');
         } else {
+            if (rows.length === 0) {
+                return res.status(404).type('txt').send(`Error: no data for capacity range ${range}`);
+            }
             fs.readFile(path.join(template, 'capacity.html'), 'utf-8', (err, data) => {
                 if (err) {
                     res.status(500).type('txt').send('File Error');
@@ -192,7 +201,7 @@ app.get('/power-capacities/:range', (req, res) => {
                     let page = data.replace(/%%capacity%%/g, title);
                     page = page.replace("%%img-src%%", `/images/${range}.png`);
                     page = page.replace("%%img-alt%%", `A graphic representing ${range} power capacity.`);
-                    page = page.replace("%%prev-next-nav%%", prevNextNav);
+                    page = page.replace("%%prev-next-nav%%", prevNextNav)
                     page = page.replace('%%powerplants%%', powerplantList);
                     res.status(200).type('html').send(page);
                 }
@@ -217,6 +226,10 @@ app.get('/power-capacities', (req, res) => {
         }
     });
 }); 
+
+app.get('*', (req, res) => {
+    res.status(404).type('txt').send(`Error: 404 Not Found. The requested path '${req.originalUrl}' does not exist on this server.`);
+});
 
 app.listen(port, () => {
     console.log('Now listening on port ' + port);
