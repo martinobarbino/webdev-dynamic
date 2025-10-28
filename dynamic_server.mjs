@@ -52,7 +52,7 @@ app.get('/countries/:country', (req, res) => {
                 } else {
                     let powerplantList = '<table><tr><th>Name</th><th>Capacity (MW)</th><th>Primary Fuel</th></tr>';
                     for (const plant of rows) {
-                        powerplantList += `<tr><td>${plant.name}</td><td>${plant.capacity_mw}</td><td>${plant.fuel1}</td></tr>`;
+                        powerplantList += `<tr><td>${plant.name}</td><td>${plant.capacity}</td><td>${plant.fuel1}</td></tr>`;
                     }
                     powerplantList += '</table>';
                     let page = data.replace(/%%country%%/g, countryName);
