@@ -31,7 +31,7 @@ app.get('/', (req, res) => {
             const routes = '<li><a href="/powerplants">Powerplants</a></li>' +
                                  '<li><a href="/countries">Countries</a></li>' +
                                  '<li><a href="/power-capacities">Power Capacities</a></li>';
-            let page = data.replace('%%title%%', 'Data');
+            let page = data.replace(/%%title%%/g, 'Data');
             page = page.replace('%%list%%', routes);
             res.status(200).type('html').send(page);
         }
@@ -53,7 +53,7 @@ app.get('/countries', (req, res) => {
                         const slug = countryName.replace(/ /g, '-').toLowerCase();
                         countryList += `<li><a href="/countries/${slug}">${countryName}</a></li>\n`;
                     }
-                    let page = data.replace('%%title%%', 'Countries');
+                    let page = data.replace(/%%title%%/g, 'Countries');
                     page = page.replace('%%list%%', countryList);
                     res.status(200).type('html').send(page);
                 }
@@ -77,7 +77,7 @@ app.get('/powerplants', (req, res) => {
                         const slug = powerplantType.replace(/ /g, '-').toLowerCase();
                         powerplantList += `<li><a href="/powerplants/${slug}">${powerplantType}</a></li>\n`;
                     }
-                    let page = data.replace('%%title%%', 'Powerplants');
+                    let page = data.replace(/%%title%%/g, 'Powerplants');
                     page = page.replace('%%list%%', powerplantList);
                     res.status(200).type('html').send(page);
                 }
@@ -94,7 +94,7 @@ app.get('/power-capacities', (req, res) => {
             const capacityLevels = '<li><a href="/power-capacities/low">Low</a></li>' +
                                  '<li><a href="/power-capacities/medium">Medium</a></li>' +
                                  '<li><a href="/power-capacities/high">High</a></li>';
-            let page = data.replace('%%title%%', 'Capacity Levels');
+            let page = data.replace(/%%title%%/g, 'Capacity Levels');
             page = page.replace('%%list%%', capacityLevels);
             res.status(200).type('html').send(page);
         }
