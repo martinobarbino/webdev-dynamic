@@ -97,6 +97,8 @@ app.get('/fuel-types/:type', (req, res) => {
     const fuelSlug = req.params.type;
     const fuelType = fuelSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
+    fuelType === 'Wave And Tidal' ? 'Wave and Tidal' : fuelType;
+
     db.all('SELECT * FROM Powerplants WHERE fuel1 = ?', [fuelType], (err, rows) => {
         if (err) {
             res.status(500).type('txt').send('SQL Error');
