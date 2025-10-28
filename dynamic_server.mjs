@@ -15,6 +15,19 @@ const template = path.join(__dirname, 'templates');
 let app = express();
 app.use(express.static(root));
 
+// Helper function to send an error page
+function sendErrorPage(res, statusCode, errorMessage) {
+    fs.readFile(path.join(template, 'error.html'), 'utf-8', (err, data) => {
+        if (err) {
+            // Fallback if error.html itself is not found
+            res.status(500).type('txt').send('A server error occurred and the error page could not be displayed.');
+        } else {
+            let page = data.replace('%%error-message%%', errorMessage);
+            res.status(statusCode).type('html').send(page);
+        }
+    });
+}
+
 const db = new sqlite3.Database('./db.sqlite3', sqlite3.OPEN_READONLY, (err) => {
         if (err)
             console. log( 'Error connecting to database');
@@ -26,7 +39,7 @@ const db = new sqlite3.Database('./db.sqlite3', sqlite3.OPEN_READONLY, (err) => 
 app.get('/', (req, res) => {
     fs.readFile(path.join(template, 'list-pages.html'), 'utf-8', (err, data) => {
         if (err) {
-            res.status(500).type('txt').send('File Error');
+            sendErrorPage(res, 500, 'File Error');
         } else {
             const routes = '<li><a href="/fuel-types">Fuel Types</a></li>' +
                                  '<li><a href="/countries">Countries</a></li>' +
@@ -46,14 +59,15 @@ app.get('/countries/:country', (req, res) => {
 
     db.all('SELECT * FROM Powerplants WHERE country = ?', [countryName], (err, rows) => {
         if (err) {
-            res.status(500).type('txt').send('SQL Error');
+            sendErrorPage(res, 500, 'SQL Error');
         } else {
             if (rows.length === 0) {
-                return res.status(404).type('txt').send(`Error: no data for country: ${countryName}`);
+                sendErrorPage(res, 404, `Error: no data for country: ${countryName}`);
+                return;
             }
             fs.readFile(path.join(template, 'country.html'), 'utf-8', (err, data) => {
                 if (err) {
-                    res.status(500).type('txt').send('File Error');
+                    sendErrorPage(res, 500, 'File Error');
                 } else {
                     let powerplantList = '<table><tr><th>Name</th><th>Capacity (MW)</th><th>Primary Fuel</th></tr>';
                     for (const plant of rows) {
@@ -73,11 +87,11 @@ app.get('/countries/:country', (req, res) => {
 app.get('/countries', (req, res) => {
     db.all('SELECT DISTINCT country FROM Powerplants ORDER BY country', (err, rows) => {
         if (err) {
-            res.status(500).type('txt').send('SQL Error');
+            sendErrorPage(res, 500, 'SQL Error');
         } else {
             fs.readFile(path.join(template, 'list-pages.html'), 'utf-8', (err, data) => {
                 if (err) {
-                    res.status(500).type('txt').send('File Error');
+                    sendErrorPage(res, 500, 'File Error');
                 } else {
                     let countryList = '';
                     for (const country of rows) {
@@ -104,15 +118,16 @@ app.get('/fuel-types/:type', (req, res) => {
 
     db.all('SELECT * FROM Powerplants WHERE fuel1 = ?', [fuelType], (err, rows) => {
         if (err) {
-            res.status(500).type('txt').send('SQL Error');
+            sendErrorPage(res, 500, 'SQL Error');
         } else {
             if (rows.length === 0) {
-                return res.status(404).type('txt').send(`Error: no data for fuel type: ${fuelType}`);
+                sendErrorPage(res, 404, `Error: no data for fuel type: ${fuelType}`);
+                return;
             }
             fs.readFile(path.join(template, 'fuel-type.html'), 'utf-8', (err, data) => {
                 fuelSlug;
                 if (err) {
-                    res.status(500).type('txt').send('File Error');
+                    sendErrorPage(res, 500, 'File Error');
                 } else {
                     let powerplantList = '<table><tr><th>Name</th><th>Country</th><th>Capacity (MW)</th></tr>';
                     for (const plant of rows) {
@@ -133,11 +148,11 @@ app.get('/fuel-types/:type', (req, res) => {
 app.get('/fuel-types', (req, res) => {
     db.all('SELECT DISTINCT fuel1 FROM Powerplants ORDER BY fuel1', (err, rows) => {
         if (err) {
-            res.status(500).type('txt').send('SQL Error');
+            sendErrorPage(res, 500, 'SQL Error');
         } else {
             fs.readFile(path.join(template, 'list-pages.html'), 'utf-8', (err, data) => {
                 if (err) {
-                    res.status(500).type('txt').send('File Error');
+                    sendErrorPage(res, 500, 'File Error');
                 } else {
                     let powerplantList = '';
                     for (const powerplant of rows) {
@@ -179,20 +194,21 @@ app.get('/power-capacities/:range', (req, res) => {
             prevNextNav = '<a href="/power-capacities/medium">Prev<a/> |'
             break;
         default:
-            res.status(404).type('txt').send('Invalid capacity range');
+            sendErrorPage(res, 404, 'Invalid capacity range');
             return;
     }
 
     db.all(query, (err, rows) => {
         if (err) {
-            res.status(500).type('txt').send('SQL Error');
+            sendErrorPage(res, 500, 'SQL Error');
         } else {
             if (rows.length === 0) {
-                return res.status(404).type('txt').send(`Error: no data for the requested capacity: ${range}`);
+                sendErrorPage(res, 404, `Error: no data for the requested capacity: ${range}`);
+                return;
             }
             fs.readFile(path.join(template, 'capacity.html'), 'utf-8', (err, data) => {
                 if (err) {
-                    res.status(500).type('txt').send('File Error');
+                    sendErrorPage(res, 500, 'File Error');
                 } else {
                     let powerplantList = '<table><tr><th>Name</th><th>Country</th><th>Capacity (MW)</th></tr>';
                     for (const plant of rows) {
@@ -214,7 +230,7 @@ app.get('/power-capacities/:range', (req, res) => {
 app.get('/power-capacities', (req, res) => {
     fs.readFile(path.join(template, 'list-pages.html'), 'utf-8', (err, data) => {
         if (err) {
-            res.status(500).type('txt').send('File Error');
+            sendErrorPage(res, 500, 'File Error');
         } else {
             const capacityLevels = '<li><a href="/power-capacities/low">Low</a></li>' +
                                  '<li><a href="/power-capacities/medium">Medium</a></li>' +
@@ -229,7 +245,7 @@ app.get('/power-capacities', (req, res) => {
 }); 
 
 app.use((req, res) => {
-    res.status(404).type('txt').send(`Error: 404 Not Found. The requested path '${req.originalUrl}' does not exist on this website.`);
+    sendErrorPage(res, 404, `Error: 404 Not Found. The requested path '${req.originalUrl}' does not exist on this website.`);
 });
 
 app.listen(port, () => {
