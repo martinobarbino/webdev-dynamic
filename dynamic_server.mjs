@@ -49,7 +49,7 @@ app.get('/countries/:country', (req, res) => {
             res.status(500).type('txt').send('SQL Error');
         } else {
             if (rows.length === 0) {
-                return res.status(404).type('txt').send(`Error: no data for country ${countryName}`);
+                return res.status(404).type('txt').send(`Error: no data for country: ${countryName}`);
             }
             fs.readFile(path.join(template, 'country.html'), 'utf-8', (err, data) => {
                 if (err) {
@@ -107,7 +107,7 @@ app.get('/fuel-types/:type', (req, res) => {
             res.status(500).type('txt').send('SQL Error');
         } else {
             if (rows.length === 0) {
-                return res.status(404).type('txt').send(`Error: no data for fuel type ${fuelType}`);
+                return res.status(404).type('txt').send(`Error: no data for fuel type: ${fuelType}`);
             }
             fs.readFile(path.join(template, 'fuel-type.html'), 'utf-8', (err, data) => {
                 fuelSlug;
@@ -187,7 +187,7 @@ app.get('/power-capacities/:range', (req, res) => {
             res.status(500).type('txt').send('SQL Error');
         } else {
             if (rows.length === 0) {
-                return res.status(404).type('txt').send(`Error: no data for capacity range ${range}`);
+                return res.status(404).type('txt').send(`Error: no data for the requested capacity: ${range}`);
             }
             fs.readFile(path.join(template, 'capacity.html'), 'utf-8', (err, data) => {
                 if (err) {
@@ -228,7 +228,7 @@ app.get('/power-capacities', (req, res) => {
 }); 
 
 app.get('*', (req, res) => {
-    res.status(404).type('txt').send(`Error: 404 Not Found. The requested path '${req.originalUrl}' does not exist on this server.`);
+    res.status(404).type('txt').send(`Error: 404 Not Found. The requested path '${req.originalUrl}' does not exist on this website.`);
 });
 
 app.listen(port, () => {
