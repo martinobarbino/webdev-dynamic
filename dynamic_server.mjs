@@ -55,7 +55,27 @@ app.get('/countries/:country', (req, res) => {
     const countrySlug = req.params.country;
     const countryName = countrySlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
-    db.all('SELECT * FROM Powerplants WHERE country = ?', [countryName], (err, rows) => {
+    // First, get the full ordered list of all countries to determine previous/next
+    db.all('SELECT DISTINCT country FROM Powerplants WHERE country IS NOT NULL AND country != "" ORDER BY country', (err, allCountries) => {
+        if (err) {
+            return sendErrorPage(res, 500, 'SQL Error getting country list');
+        }
+
+        const countryNames = allCountries.map(c => c.country);
+        const currentIndex = countryNames.indexOf(countryName);
+
+        if (currentIndex === -1) {
+            return sendErrorPage(res, 404, `Error: no data for country: ${countryName}`);
+        }
+
+        // Looping logic for previous and next
+        const prevIndex = (currentIndex - 1 + countryNames.length) % countryNames.length;
+        const nextIndex = (currentIndex + 1) % countryNames.length;
+
+        const prevLink = `/countries/${countryNames[prevIndex].replace(/ /g, '-').toLowerCase()}`;
+        const nextLink = `/countries/${countryNames[nextIndex].replace(/ /g, '-').toLowerCase()}`;
+
+        db.all('SELECT * FROM Powerplants WHERE country = ?', [countryName], (err, rows) => {
         if (err) {
             sendErrorPage(res, 500, 'SQL Error');
         } else {
@@ -72,14 +92,18 @@ app.get('/countries/:country', (req, res) => {
                         powerplantList += `<tr><td>${plant.name}</td><td>${plant.capacity}</td><td>${plant.fuel1}</td></tr>`;
                     }
                     powerplantList += '</table>';
+                    const navHtml = `<div class="prev-next-nav"><a href="${prevLink}">← Previous</a><a href="${nextLink}">Next →</a></div>`;
+
                     let page = data.replace(/%title%/g, countryName);
                     page = page.replace("%%flag-icon%%", countryToAlpha2(countryName).toLowerCase());
                     page = page.replace('%%powerplants%%', powerplantList);
+                    page = page.replace('%%prev-next-nav%%', navHtml);
                     res.status(200).type('html').send(page);
                 }
             });
         }
     });
+  });
 });
 
 app.get('/countries', (req, res) => {
@@ -110,11 +134,33 @@ app.get('/countries', (req, res) => {
 
 app.get('/fuel-types/:type', (req, res) => {
     const fuelSlug = req.params.type;
-    const fuelType = fuelSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    let fuelType = fuelSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
-    fuelType === 'Wave And Tidal' ? 'Wave and Tidal' : fuelType;
+    if (fuelType === 'Wave And Tidal') {
+        fuelType = 'Wave and Tidal';
+    }
 
-    db.all('SELECT * FROM Powerplants WHERE fuel1 = ?', [fuelType], (err, rows) => {
+    // First, get the full ordered list of all fuel types
+    db.all('SELECT DISTINCT fuel1 FROM Powerplants WHERE fuel1 IS NOT NULL AND fuel1 != "" ORDER BY fuel1', (err, allFuelTypes) => {
+        if (err) {
+            return sendErrorPage(res, 500, 'SQL Error getting fuel type list');
+        }
+
+        const fuelTypeNames = allFuelTypes.map(f => f.fuel1);
+        const currentIndex = fuelTypeNames.indexOf(fuelType);
+
+        if (currentIndex === -1) {
+            return sendErrorPage(res, 404, `Error: no data for fuel type: ${fuelType}`);
+        }
+
+        // Looping logic for previous and next
+        const prevIndex = (currentIndex - 1 + fuelTypeNames.length) % fuelTypeNames.length;
+        const nextIndex = (currentIndex + 1) % fuelTypeNames.length;
+
+        const prevLink = `/fuel-types/${fuelTypeNames[prevIndex].replace(/ /g, '-').toLowerCase()}`;
+        const nextLink = `/fuel-types/${fuelTypeNames[nextIndex].replace(/ /g, '-').toLowerCase()}`;
+
+        db.all('SELECT * FROM Powerplants WHERE fuel1 = ?', [fuelType], (err, rows) => {
         if (err) {
             sendErrorPage(res, 500, 'SQL Error');
         } else {
@@ -132,15 +178,20 @@ app.get('/fuel-types/:type', (req, res) => {
                         powerplantList += `<tr><td>${plant.name}</td><td>${plant.country}</td><td>${plant.capacity}</td></tr>`;
                     }
                     powerplantList += '</table>';
+
+                    const navHtml = `<div class="prev-next-nav"><a href="${prevLink}">← Previous</a><a href="${nextLink}">Next →</a></div>`;
+
                     let page = data.replace(/%%fuel-type%%/g, fuelType);
                     page = page.replace("%%img-src%%", `/images/${fuelSlug}.png`);
                     page = page.replace("%%img-alt%%", `A photo of a powerplant that is fueled by ${fuelType.toLowerCase()}.`);
                     page = page.replace('%%powerplants%%', powerplantList);
+                    page = page.replace('%%prev-next-nav%%', navHtml);
                     res.status(200).type('html').send(page);
                 }
             });
         }
     });
+  });
 });
 
 app.get('/fuel-types', (req, res) => {
