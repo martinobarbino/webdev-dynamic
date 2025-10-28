@@ -3,14 +3,19 @@
     "description": "Dynamic Server",
     "version": "1.0.0",
     "author": {
-        "name": "",
-        "email": ""
+        "name": "martinobarbino",
+        "email": "mill9589@stthomas.edu"
     },
     "contributors": [
+        "Charlie Tronrud",
+        "Cody Kyro"
     ],
-    "repository": {},
+    "repository": {
+        "url": "https://github.com/martinobarbino/webdev-dynamic"
+    },
     "dependencies": {
         "express": "^5.1.0",
-        "sqlite3": "^5.1.7"
+        "sqlite3": "^5.1.7",
+        "ws": "^8.18.3"
     }
 }
