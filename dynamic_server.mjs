@@ -116,7 +116,15 @@ app.get('/countries/:country', (req, res) => {
 });
 
 app.get('/countries', (req, res) => {
-    db.all('SELECT DISTINCT country FROM Powerplants ORDER BY country', (err, rows) => {
+    const query = `
+        SELECT country, COUNT(*) as plant_count
+        FROM Powerplants
+        WHERE country IS NOT NULL AND country != ''
+        GROUP BY country
+        ORDER BY plant_count DESC
+        LIMIT 15;
+    `;
+    db.all(query, (err, rows) => {
         if (err) {
             sendErrorPage(res, 500, 'SQL Error');
         } else {
@@ -124,16 +132,47 @@ app.get('/countries', (req, res) => {
                 if (err) {
                     sendErrorPage(res, 500, 'File Error');
                 } else {
+                    const labels = rows.map(row => row.country);
+                    const chartData = rows.map(row => row.plant_count);
+
+                    const chartScript = `
+                        <script>
+                            const ctx = document.getElementById('data-chart').getContext('2d');
+                            new Chart(ctx, {
+                                type: 'bar',
+                                data: {
+                                    labels: ${JSON.stringify(labels)},
+                                    datasets: [{
+                                        label: 'Number of Power Plants',
+                                        data: ${JSON.stringify(chartData)},
+                                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                        borderColor: 'rgba(75, 192, 192, 1)',
+                                        borderWidth: 1
+                                    }]
+                                },
+                                options: {
+                                    scales: {
+                                        y: {
+                                            beginAtZero: true
+                                        }
+                                    }
+                                }
+                            });
+                        </script>
+                    `;
+
                     let countryList = '';
                     for (const country of rows) {
                         const countryName = country.country;
                         const slug = countryName.replace(/ /g, '-').toLowerCase();
                         countryList += `<li><a href="/countries/${slug}">${countryName}</a></li>\n`;
                     }
-                    let page = data.replace(/%%title%%/g, 'Countries');
+
+                    let page = data.replace(/%%title%%/g, 'Top 15 Countries by Power Plant Count');
                     page = page.replace('%%img-src%%', '/images/countries.png');
                     page = page.replace("%%img-alt%%", 'A picture of the Earth.');
                     page = page.replace('%%list%%', countryList);
+                    page = page.replace('%%chart-script%%', chartScript);
                     res.status(200).type('html').send(page);
                 }
             });
@@ -213,7 +252,14 @@ app.get('/fuel-types/:type', (req, res) => {
 });
 
 app.get('/fuel-types', (req, res) => {
-    db.all('SELECT DISTINCT fuel1 FROM Powerplants ORDER BY fuel1', (err, rows) => {
+    const query = `
+        SELECT fuel1, COUNT(*) as plant_count
+        FROM Powerplants
+        WHERE fuel1 IS NOT NULL AND fuel1 != ''
+        GROUP BY fuel1
+        ORDER BY plant_count DESC;
+    `;
+    db.all(query, (err, rows) => {
         if (err) {
             sendErrorPage(res, 500, 'SQL Error');
         } else {
@@ -221,16 +267,50 @@ app.get('/fuel-types', (req, res) => {
                 if (err) {
                     sendErrorPage(res, 500, 'File Error');
                 } else {
+                    const labels = rows.map(row => row.fuel1);
+                    const chartData = rows.map(row => row.plant_count);
+
+                    const chartScript = `
+                        <script>
+                            const ctx = document.getElementById('data-chart').getContext('2d');
+                            new Chart(ctx, {
+                                type: 'pie',
+                                data: {
+                                    labels: ${JSON.stringify(labels)},
+                                    datasets: [{
+                                        label: 'Number of Power Plants',
+                                        data: ${JSON.stringify(chartData)},
+                                        backgroundColor: [
+                                            'rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 206, 86, 0.2)',
+                                            'rgba(75, 192, 192, 0.2)', 'rgba(153, 102, 255, 0.2)', 'rgba(255, 159, 64, 0.2)',
+                                            'rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 206, 86, 0.2)',
+                                            'rgba(75, 192, 192, 0.2)', 'rgba(153, 102, 255, 0.2)', 'rgba(255, 159, 64, 0.2)'
+                                        ],
+                                        borderColor: [
+                                            'rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)',
+                                            'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)',
+                                            'rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)',
+                                            'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)'
+                                        ],
+                                        borderWidth: 1
+                                    }]
+                                }
+                            });
+                        </script>
+                    `;
+
                     let powerplantList = '';
                     for (const powerplant of rows) {
                         const powerplantType = powerplant.fuel1;
                         const slug = powerplantType.replace(/ /g, '-').toLowerCase();
                         powerplantList += `<li><a href="/fuel-types/${slug}">${powerplantType}</a></li>\n`;
                     }
-                    let page = data.replace(/%%title%%/g, 'Fuel Types');
+
+                    let page = data.replace(/%%title%%/g, 'Power Plants by Fuel Type');
                     page = page.replace('%%img-src%%', '/images/fuel-types.png');
                     page = page.replace("%%img-alt%%", 'A picture of a powerplant.');
                     page = page.replace('%%list%%', powerplantList);
+                    page = page.replace('%%chart-script%%', chartScript);
                     res.status(200).type('html').send(page);
                 }
             });
@@ -295,20 +375,74 @@ app.get('/power-capacities/:range', (req, res) => {
 });
 
 app.get('/power-capacities', (req, res) => {
-    fs.readFile(path.join(template, 'list-pages.html'), 'utf-8', (err, data) => {
+    const query = `
+        SELECT 
+            CASE
+                WHEN capacity < 7500 THEN 'Low'
+                WHEN capacity >= 7500 AND capacity < 15000 THEN 'Medium'
+                ELSE 'High'
+            END as capacity_range,
+            COUNT(*) as plant_count
+        FROM Powerplants
+        GROUP BY capacity_range
+        ORDER BY 
+            CASE capacity_range
+                WHEN 'Low' THEN 1
+                WHEN 'Medium' THEN 2
+                WHEN 'High' THEN 3
+            END;
+    `;
+    db.all(query, (err, rows) => {
+        if (err) {
+            return sendErrorPage(res, 500, 'SQL Error getting capacity data');
+        }
+
+        fs.readFile(path.join(template, 'list-pages.html'), 'utf-8', (err, data) => {
         if (err) {
             sendErrorPage(res, 500, 'File Error');
         } else {
+            const labels = rows.map(row => row.capacity_range);
+            const chartData = rows.map(row => row.plant_count);
+
+            const chartScript = `
+                <script>
+                    const ctx = document.getElementById('data-chart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ${JSON.stringify(labels)},
+                            datasets: [{
+                                label: 'Number of Power Plants',
+                                data: ${JSON.stringify(chartData)},
+                                backgroundColor: ['rgba(255, 206, 86, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 99, 132, 0.2)'],
+                                borderColor: ['rgba(255, 206, 86, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 99, 132, 1)'],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                </script>
+            `;
+
             const capacityLevels = '<li><a href="/power-capacities/low">Low</a></li>' +
                                  '<li><a href="/power-capacities/medium">Medium</a></li>' +
                                  '<li><a href="/power-capacities/high">High</a></li>';
-            let page = data.replace(/%%title%%/g, 'Capacity Levels');
+
+            let page = data.replace(/%%title%%/g, 'Power Plants by Capacity Range');
             page = page.replace('%%img-src%%', '/images/power-capacities.png');
             page = page.replace("%%img-alt%%", 'A picture of three power plants with different power capacities.');
             page = page.replace('%%list%%', capacityLevels);
+            page = page.replace('%%chart-script%%', chartScript);
             res.status(200).type('html').send(page);
         }
     });
+  });
 }); 
 
 app.use((req, res) => {

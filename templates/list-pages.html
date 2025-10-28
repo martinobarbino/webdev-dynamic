@@ -7,6 +7,7 @@
     <link rel="icon" href="/images/powerplant.png" type="image/png">
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/css/flag-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <nav>
@@ -17,10 +18,14 @@
     </nav>
     <div class="container">
         <h1>%%title%%</h1>
+        <div class="chart-container" style="position: relative; height:60vh; width:80vw; margin: auto;">
+            <canvas id="data-chart"></canvas>
+        </div>
         <img src="%%img-src%%" alt="%%img-alt%%"/>
         <ul>
             %%list%%
         </ul>
+        %%chart-script%%
     </div>
 </body>
 </html>
