@@ -24,12 +24,9 @@ const db = new sqlite3.Database('./db.sqlite3', sqlite3.OPEN_READONLY, (err) => 
 });
 
 app.get('/', (req, res) => {
-    res.redirect('/powerplants/united-states-of-america');
+    res.redirect('/countries');
 }); 
 
-app.get('/powerplants/united-states-of-america', (req, res) => {
-    
-});
 
 app.get('/countries', (req, res) => {
     db.all('SELECT DISTINCT country FROM Powerplants ORDER BY country', (err, rows) => {
