@@ -112,8 +112,8 @@ app.get('/fuel-types/:type', (req, res) => {
                     }
                     powerplantList += '</table>';
                     let page = data.replace(/%%fuel-type%%/g, fuelType);
-                    page = page.replace("%%img-src%%", `/images/${capacityType}.png`);
-                    page = page.replace("%%img-alt%%", `A graphic representing ${capacityType} power capacity.`);
+                    page = page.replace("%%img-src%%", `/images/${fuelSlug}.png`);
+                    page = page.replace("%%img-alt%%", `A photo of a powerplant that is fueled by ${fuelType.toLowerCase()}.`);
                     page = page.replace('%%powerplants%%', powerplantList);
                     res.status(200).type('html').send(page);
                 }
