@@ -4,6 +4,7 @@ import * as url from 'node:url';
 
 import { default as express } from 'express';
 import { default as sqlite3 } from 'sqlite3';
+import { default as getCountryISO2 } from 'country-to-iso';
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 
@@ -26,25 +27,27 @@ app.get('/', (req, res) => {
     res.redirect('/powerplants/united-states-of-america');
 }); 
 
-app.get('/powerplants/:country', (req, res) => {
-    const countrySlug = req.params.country;
-    const countryName = countrySlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+app.get('/powerplants/united-states-of-america', (req, res) => {
+    
+});
 
-    db.all('SELECT * FROM Powerplants WHERE country_long = ?', [countryName], (err, rows) => {
+app.get('/countries', (req, res) => {
+    db.all('SELECT DISTINCT country_long FROM Powerplants ORDER BY country_long', (err, rows) => {
         if (err) {
             res.status(500).type('txt').send('SQL Error');
         } else {
-            fs.readFile(path.join(template, 'energy-type.html'), 'utf-8', (err, data) => {
+            fs.readFile(path.join(template, 'country.html'), 'utf-8', (err, data) => {
                 if (err) {
                     res.status(500).type('txt').send('File Error');
                 } else {
-                    let powerplantList = '<table><tr><th>Name</th><th>Capacity (MW)</th><th>Primary Fuel</th></tr>';
-                    for (const plant of rows) {
-                        powerplantList += `<tr><td>${plant.name}</td><td>${plant.capacity_mw}</td><td>${plant.primary_fuel}</td></tr>`;
+                    let countryList = '';
+                    for (const country of rows) {
+                        const countryName = country.country_long;
+                        const iso2 = getCountryISO2(countryName)?.toLowerCase() || '';
+                        const slug = countryName.replace(/ /g, '-').toLowerCase();
+                        countryList += `<li><span class="fi fi-${iso2}"></span> <a href="/powerplants/${slug}">${countryName}</a></li>\n`;
                     }
-                    powerplantList += '</table>';
-                    let page = data.replace('%%country%%', countryName);
-                    page = page.replace('%%powerplants%%', powerplantList);
+                    const page = data.replace('%%countries%%', countryList);
                     res.status(200).type('html').send(page);
                 }
             });
