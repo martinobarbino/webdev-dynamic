@@ -43,7 +43,6 @@ app.get('/countries', (req, res) => {
                     let countryList = '';
                     for (const country of rows) {
                         const countryName = country.country;
-                        const iso2 = getCountryISO2(countryName)?.toLowerCase() || '';
                         const slug = countryName.replace(/ /g, '-').toLowerCase();
                         countryList += `<li><span class="fi fi-${iso2}"></span> <a href="/powerplants/${slug}">${countryName}</a></li>\n`;
                     }
