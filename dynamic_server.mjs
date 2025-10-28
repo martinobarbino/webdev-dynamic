@@ -81,6 +81,7 @@ app.get('/countries', (req, res) => {
                         countryList += `<li><a href="/countries/${slug}">${countryName}</a></li>\n`;
                     }
                     let page = data.replace(/%%title%%/g, 'Countries');
+                    page.replace('%%img-src%%', '../public/images/countries.png');
                     page = page.replace('%%list%%', countryList);
                     res.status(200).type('html').send(page);
                 }
