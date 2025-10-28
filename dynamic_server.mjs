@@ -296,23 +296,7 @@ app.get('/power-capacities/:range', (req, res) => {
 });
 
 app.get('/visualizations', (req, res) => {
-    fs.readFile(path.join(template, 'list-pages.html'), 'utf-8', (err, data) => {
-        if (err) {
-            sendErrorPage(res, 500, 'File Error');
-        } else {
-            const vizLinks = '<li><a href="/visualizations/countries">Countries by Power Plant Count</a></li>' +
-                           '<li><a href="/visualizations/fuel-types">Power Plants by Fuel Type</a></li>';
-            let page = data.replace(/%%title%%/g, 'Visualizations');
-            page = page.replace('%%img-src%%', '/images/visualizations.png'); // You might want a generic viz image
-            page = page.replace("%%img-alt%%", 'A graphic representing data visualizations.');
-            page = page.replace('%%list%%', vizLinks);
-            res.status(200).type('html').send(page);
-        }
-    });
-});
-
-app.get('/visualizations/countries', (req, res) => {
-    const query = `
+    const countriesQuery = `
         SELECT country, COUNT(*) as plant_count
         FROM Powerplants
         WHERE country IS NOT NULL AND country != ''
@@ -320,102 +304,89 @@ app.get('/visualizations/countries', (req, res) => {
         ORDER BY plant_count DESC
         LIMIT 15;
     `;
-    db.all(query, (err, rows) => {
-        if (err) {
-            sendErrorPage(res, 500, 'SQL Error');
-        } else {
-            fs.readFile(path.join(template, 'visualization.html'), 'utf-8', (err, data) => {
-                if (err) {
-                    sendErrorPage(res, 500, 'File Error');
-                } else {
-                    const labels = rows.map(row => row.country);
-                    const chartData = rows.map(row => row.plant_count);
-                    const chartScript = `
-                        <script>
-                            const ctx = document.getElementById('data-chart').getContext('2d');
-                            new Chart(ctx, {
-                                type: 'bar',
-                                data: {
-                                    labels: ${JSON.stringify(labels)},
-                                    datasets: [{
-                                        label: 'Number of Power Plants',
-                                        data: ${JSON.stringify(chartData)},
-                                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                                        borderColor: 'rgba(75, 192, 192, 1)',
-                                        borderWidth: 1
-                                    }]
-                                },
-                                options: {
-                                    scales: {
-                                        y: {
-                                            beginAtZero: true
-                                        }
-                                    }
-                                }
-                            });
-                        </script>
-                    `;
-                    let page = data.replace(/%%title%%/g, 'Top 15 Countries by Power Plant Count');
-                    page = page.replace('%%chart-script%%', chartScript);
-                    res.status(200).type('html').send(page);
-                }
-            });
-        }
-    });
-});
 
-app.get('/visualizations/fuel-types', (req, res) => {
-    const query = `
+    const fuelTypesQuery = `
         SELECT fuel1, COUNT(*) as plant_count
         FROM Powerplants
         WHERE fuel1 IS NOT NULL AND fuel1 != ''
         GROUP BY fuel1
         ORDER BY plant_count DESC;
     `;
-    db.all(query, (err, rows) => {
-        if (err) {
-            sendErrorPage(res, 500, 'SQL Error');
-        } else {
-            fs.readFile(path.join(template, 'visualization.html'), 'utf-8', (err, data) => {
-                if (err) {
-                    sendErrorPage(res, 500, 'File Error');
-                } else {
-                    const labels = rows.map(row => row.fuel1);
-                    const chartData = rows.map(row => row.plant_count);
-                    const chartScript = `
-                        <script>
-                            const ctx = document.getElementById('data-chart').getContext('2d');
-                            new Chart(ctx, {
-                                type: 'pie',
-                                data: {
-                                    labels: ${JSON.stringify(labels)},
-                                    datasets: [{
-                                        label: 'Number of Power Plants',
-                                        data: ${JSON.stringify(chartData)},
-                                        backgroundColor: [
-                                            'rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 206, 86, 0.2)',
-                                            'rgba(75, 192, 192, 0.2)', 'rgba(153, 102, 255, 0.2)', 'rgba(255, 159, 64, 0.2)',
-                                            'rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 206, 86, 0.2)',
-                                            'rgba(75, 192, 192, 0.2)', 'rgba(153, 102, 255, 0.2)', 'rgba(255, 159, 64, 0.2)'
-                                        ],
-                                        borderColor: [
-                                            'rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)',
-                                            'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)',
-                                            'rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)',
-                                            'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)'
-                                        ],
-                                        borderWidth: 1
-                                    }]
-                                }
-                            });
-                        </script>
-                    `;
-                    let page = data.replace(/%%title%%/g, 'Power Plants by Fuel Type');
-                    page = page.replace('%%chart-script%%', chartScript);
-                    res.status(200).type('html').send(page);
-                }
-            });
-        }
+
+    const promise1 = new Promise((resolve, reject) => {
+        db.all(countriesQuery, (err, rows) => err ? reject(err) : resolve(rows));
+    });
+
+    const promise2 = new Promise((resolve, reject) => {
+        db.all(fuelTypesQuery, (err, rows) => err ? reject(err) : resolve(rows));
+    });
+
+    Promise.all([promise1, promise2]).then(([countriesRows, fuelTypesRows]) => {
+        fs.readFile(path.join(template, 'visualization.html'), 'utf-8', (err, data) => {
+            if (err) {
+                return sendErrorPage(res, 500, 'File Error');
+            }
+
+            const countriesLabels = countriesRows.map(row => row.country);
+            const countriesData = countriesRows.map(row => row.plant_count);
+            const countriesChartScript = `
+                <script>
+                    const ctxCountries = document.getElementById('countries-chart').getContext('2d');
+                    new Chart(ctxCountries, {
+                        type: 'bar',
+                        data: {
+                            labels: ${JSON.stringify(countriesLabels)},
+                            datasets: [{
+                                label: 'Number of Power Plants',
+                                data: ${JSON.stringify(countriesData)},
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: { scales: { y: { beginAtZero: true } } }
+                    });
+                </script>
+            `;
+
+            const fuelTypesLabels = fuelTypesRows.map(row => row.fuel1);
+            const fuelTypesData = fuelTypesRows.map(row => row.plant_count);
+            const fuelTypesChartScript = `
+                <script>
+                    const ctxFuelTypes = document.getElementById('fuel-types-chart').getContext('2d');
+                    new Chart(ctxFuelTypes, {
+                        type: 'pie',
+                        data: {
+                            labels: ${JSON.stringify(fuelTypesLabels)},
+                            datasets: [{
+                                label: 'Number of Power Plants',
+                                data: ${JSON.stringify(fuelTypesData)},
+                                backgroundColor: [
+                                    'rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 206, 86, 0.2)',
+                                    'rgba(75, 192, 192, 0.2)', 'rgba(153, 102, 255, 0.2)', 'rgba(255, 159, 64, 0.2)',
+                                    'rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 206, 86, 0.2)',
+                                    'rgba(75, 192, 192, 0.2)', 'rgba(153, 102, 255, 0.2)', 'rgba(255, 159, 64, 0.2)'
+                                ],
+                                borderColor: [
+                                    'rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)',
+                                    'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)',
+                                    'rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)',
+                                    'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)'
+                                ],
+                                borderWidth: 1
+                            }]
+                        }
+                    });
+                </script>
+            `;
+
+            let page = data.replace(/%%title%%/g, 'Data Visualizations');
+            page = page.replace('%%countries-chart-script%%', countriesChartScript);
+            page = page.replace('%%fuel-types-chart-script%%', fuelTypesChartScript);
+            res.status(200).type('html').send(page);
+        });
+    }).catch(err => {
+        sendErrorPage(res, 500, 'SQL Error');
     });
 });
 

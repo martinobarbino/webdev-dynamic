@@ -19,10 +19,19 @@
     </nav>
     <div class="container">
         <h1>%%title%%</h1>
-        <div class="chart-container" style="position: relative; height:60vh; width:80vw; margin: auto;">
-            <canvas id="data-chart"></canvas>
+        
+        <h2>Top 15 Countries by Power Plant Count</h2>
+        <div class="chart-container" style="position: relative; height:60vh; width:80vw; margin: auto; margin-bottom: 50px;">
+            <canvas id="countries-chart"></canvas>
         </div>
-        %%chart-script%%
+        
+        <h2>Power Plants by Fuel Type</h2>
+        <div class="chart-container" style="position: relative; height:60vh; width:80vw; margin: auto;">
+            <canvas id="fuel-types-chart"></canvas>
+        </div>
+        
+        %%countries-chart-script%%
+        %%fuel-types-chart-script%%
     </div>
 </body>
 </html>
