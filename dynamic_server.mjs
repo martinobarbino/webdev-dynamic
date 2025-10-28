@@ -24,30 +24,16 @@ const db = new sqlite3.Database('./db.sqlite3', sqlite3.OPEN_READONLY, (err) => 
 });
 
 app.get('/', (req, res) => {
-    res.redirect('/countries');
-}); 
-
-
-app.get('/countries', (req, res) => {
-    db.all('SELECT DISTINCT country FROM Powerplants ORDER BY country', (err, rows) => {
+    fs.readFile(path.join(template, 'list-pages.html'), 'utf-8', (err, data) => {
         if (err) {
-            res.status(500).type('txt').send('SQL Error');
+            res.status(500).type('txt').send('File Error');
         } else {
-            fs.readFile(path.join(template, 'list-pages.html'), 'utf-8', (err, data) => {
-                if (err) {
-                    res.status(500).type('txt').send('File Error');
-                } else {
-                    let countryList = '';
-                    for (const country of rows) {
-                        const countryName = country.country;
-                        const slug = countryName.replace(/ /g, '-').toLowerCase();
-                        countryList += `<li><span class="fi fi-${iso2}"></span> <a href="/powerplants/${slug}">${countryName}</a></li>\n`;
-                    }
-                    let page = data.replace('%%title%%', 'Countries');
-                    page = page.replace('%%list%%', countryList);
-                    res.status(200).type('html').send(page);
-                }
-            });
+            const routes = '<li><a href="/powerplants">Powerplants</a></li>' +
+                                 '<li><a href="/countries">Countries</a></li>' +
+                                 '<li><a href="/power-capacities">Power Capacities</a></li>';
+            let page = data.replace('%%title%%', 'Data');
+            page = page.replace('%%list%%', routes);
+            res.status(200).type('html').send(page);
         }
     });
 }); 
