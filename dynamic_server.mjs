@@ -88,6 +88,32 @@ app.get('/countries', (req, res) => {
     });
 }); 
 
+app.get('/fuel-types/:type', (req, res) => {
+    const fuelSlug = req.params.type;
+    const fuelType = fuelSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+    db.all('SELECT * FROM Powerplants WHERE fuel1 = ?', [fuelType], (err, rows) => {
+        if (err) {
+            res.status(500).type('txt').send('SQL Error');
+        } else {
+            fs.readFile(path.join(template, 'energy-type.html'), 'utf-8', (err, data) => {
+                if (err) {
+                    res.status(500).type('txt').send('File Error');
+                } else {
+                    let powerplantList = '<table><tr><th>Name</th><th>Country</th><th>Capacity (MW)</th></tr>';
+                    for (const plant of rows) {
+                        powerplantList += `<tr><td>${plant.name}</td><td>${plant.country}</td><td>${plant.capacity}</td></tr>`;
+                    }
+                    powerplantList += '</table>';
+                    let page = data.replace(/%%country%%/g, `Fuel Type: ${fuelType}`);
+                    page = page.replace('%%powerplants%%', powerplantList);
+                    res.status(200).type('html').send(page);
+                }
+            });
+        }
+    });
+});
+
 app.get('/fuel-types', (req, res) => {
     db.all('SELECT DISTINCT fuel1 FROM Powerplants ORDER BY fuel1', (err, rows) => {
         if (err) {
@@ -111,6 +137,51 @@ app.get('/fuel-types', (req, res) => {
         }
     });
 }); 
+
+app.get('/power-capacities/:range', (req, res) => {
+    const range = req.params.range;
+    let query = '';
+    let title = '';
+
+    switch (range) {
+        case 'low':
+            query = 'SELECT * FROM Powerplants WHERE capacity BETWEEN 0 AND 100 ORDER BY capacity';
+            title = 'Low Capacity Power Plants';
+            break;
+        case 'medium':
+            query = 'SELECT * FROM Powerplants WHERE capacity BETWEEN 100 AND 500 ORDER BY capacity';
+            title = 'Medium Capacity Power Plants';
+            break;
+        case 'high':
+            query = 'SELECT * FROM Powerplants WHERE capacity > 500 ORDER BY capacity';
+            title = 'High Capacity Power Plants';
+            break;
+        default:
+            res.status(404).type('txt').send('Invalid capacity range');
+            return;
+    }
+
+    db.all(query, (err, rows) => {
+        if (err) {
+            res.status(500).type('txt').send('SQL Error');
+        } else {
+            fs.readFile(path.join(template, 'energy-type.html'), 'utf-8', (err, data) => {
+                if (err) {
+                    res.status(500).type('txt').send('File Error');
+                } else {
+                    let powerplantList = '<table><tr><th>Name</th><th>Country</th><th>Capacity (MW)</th></tr>';
+                    for (const plant of rows) {
+                        powerplantList += `<tr><td>${plant.name}</td><td>${plant.country}</td><td>${plant.capacity}</td></tr>`;
+                    }
+                    powerplantList += '</table>';
+                    let page = data.replace(/%%country%%/g, title);
+                    page = page.replace('%%powerplants%%', powerplantList);
+                    res.status(200).type('html').send(page);
+                }
+            });
+        }
+    });
+});
 
 app.get('/power-capacities', (req, res) => {
     fs.readFile(path.join(template, 'list-pages.html'), 'utf-8', (err, data) => {
