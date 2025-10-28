@@ -28,7 +28,7 @@ app.get('/', (req, res) => {
         if (err) {
             res.status(500).type('txt').send('File Error');
         } else {
-            const routes = '<li><a href="/powerplants">Powerplants</a></li>' +
+            const routes = '<li><a href="/fuel-types">Fuel Types</a></li>' +
                                  '<li><a href="/countries">Countries</a></li>' +
                                  '<li><a href="/power-capacities">Power Capacities</a></li>';
             let page = data.replace('%%title%%', 'Powerplant Data');
@@ -89,7 +89,7 @@ app.get('/countries', (req, res) => {
     });
 }); 
 
-app.get('/powerplants', (req, res) => {
+app.get('/fuel-types', (req, res) => {
     db.all('SELECT DISTINCT fuel1 FROM Powerplants ORDER BY fuel1', (err, rows) => {
         if (err) {
             res.status(500).type('txt').send('SQL Error');
@@ -102,9 +102,9 @@ app.get('/powerplants', (req, res) => {
                     for (const powerplant of rows) {
                         const powerplantType = powerplant.fuel1;
                         const slug = powerplantType.replace(/ /g, '-').toLowerCase();
-                        powerplantList += `<li><a href="/powerplants/${slug}">${powerplantType}</a></li>\n`;
+                        powerplantList += `<li><a href="/fuel-types/${slug}">${powerplantType}</a></li>\n`;
                     }
-                    let page = data.replace(/%%title%%/g, 'Powerplants');
+                    let page = data.replace(/%%title%%/g, 'Fuel Types');
                     page = page.replace('%%list%%', powerplantList);
                     res.status(200).type('html').send(page);
                 }
