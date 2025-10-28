@@ -46,7 +46,7 @@ app.get('/countries/:country', (req, res) => {
         if (err) {
             res.status(500).type('txt').send('SQL Error');
         } else {
-            fs.readFile(path.join(template, 'energy-type.html'), 'utf-8', (err, data) => {
+            fs.readFile(path.join(template, 'country.html'), 'utf-8', (err, data) => {
                 if (err) {
                     res.status(500).type('txt').send('File Error');
                 } else {
@@ -55,7 +55,7 @@ app.get('/countries/:country', (req, res) => {
                         powerplantList += `<tr><td>${plant.name}</td><td>${plant.capacity}</td><td>${plant.fuel1}</td></tr>`;
                     }
                     powerplantList += '</table>';
-                    let page = data.replace(/%%country%%/g, countryName);
+                    let page = data.replace(/%%title%%/g, countryName);
                     page = page.replace('%%powerplants%%', powerplantList);
                     res.status(200).type('html').send(page);
                 }
@@ -145,15 +145,15 @@ app.get('/power-capacities/:range', (req, res) => {
 
     switch (range) {
         case 'low':
-            query = 'SELECT * FROM Powerplants WHERE capacity BETWEEN 0 AND 100 ORDER BY capacity';
+            query = 'SELECT * FROM Powerplants WHERE capacity BETWEEN 0 AND 7499 ORDER BY capacity';
             title = 'Low Capacity Power Plants';
             break;
         case 'medium':
-            query = 'SELECT * FROM Powerplants WHERE capacity BETWEEN 100 AND 500 ORDER BY capacity';
+            query = 'SELECT * FROM Powerplants WHERE capacity BETWEEN 7499 AND 14998 ORDER BY capacity';
             title = 'Medium Capacity Power Plants';
             break;
         case 'high':
-            query = 'SELECT * FROM Powerplants WHERE capacity > 500 ORDER BY capacity';
+            query = 'SELECT * FROM Powerplants WHERE capacity > 14998 ORDER BY capacity';
             title = 'High Capacity Power Plants';
             break;
         default:
@@ -165,7 +165,7 @@ app.get('/power-capacities/:range', (req, res) => {
         if (err) {
             res.status(500).type('txt').send('SQL Error');
         } else {
-            fs.readFile(path.join(template, 'energy-type.html'), 'utf-8', (err, data) => {
+            fs.readFile(path.join(template, 'capacity.html'), 'utf-8', (err, data) => {
                 if (err) {
                     res.status(500).type('txt').send('File Error');
                 } else {
@@ -174,7 +174,7 @@ app.get('/power-capacities/:range', (req, res) => {
                         powerplantList += `<tr><td>${plant.name}</td><td>${plant.country}</td><td>${plant.capacity}</td></tr>`;
                     }
                     powerplantList += '</table>';
-                    let page = data.replace(/%%country%%/g, title);
+                    let page = data.replace(/%%capacity%%/g, title);
                     page = page.replace('%%powerplants%%', powerplantList);
                     res.status(200).type('html').send(page);
                 }
