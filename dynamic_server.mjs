@@ -4,7 +4,7 @@ import * as url from 'node:url';
 
 import { default as express } from 'express';
 import { default as sqlite3 } from 'sqlite3';
-import { default as getCountryISO2 } from 'country-to-iso';
+import { countryToAlpha2 } from "country-to-iso";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 
@@ -56,6 +56,7 @@ app.get('/countries/:country', (req, res) => {
                     }
                     powerplantList += '</table>';
                     let page = data.replace(/%title%/g, countryName);
+                    page = page.replace("%%flag-icon%%", countryToAlpha2(countryName));
                     page = page.replace('%%powerplants%%', powerplantList);
                     res.status(200).type('html').send(page);
                 }
