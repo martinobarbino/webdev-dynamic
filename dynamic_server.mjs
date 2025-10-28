@@ -56,7 +56,7 @@ app.get('/countries/:country', (req, res) => {
                     }
                     powerplantList += '</table>';
                     let page = data.replace(/%title%/g, countryName);
-                    page = page.replace("%%flag-icon%%", countryToAlpha2(countryName));
+                    page = page.replace("%%flag-icon%%", countryToAlpha2(countryName).toLowerCase());
                     page = page.replace('%%powerplants%%', powerplantList);
                     res.status(200).type('html').send(page);
                 }
