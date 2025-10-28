@@ -96,7 +96,7 @@ app.get('/fuel-types/:type', (req, res) => {
         if (err) {
             res.status(500).type('txt').send('SQL Error');
         } else {
-            fs.readFile(path.join(template, 'energy-type.html'), 'utf-8', (err, data) => {
+            fs.readFile(path.join(template, 'fuel-type.html'), 'utf-8', (err, data) => {
                 if (err) {
                     res.status(500).type('txt').send('File Error');
                 } else {
