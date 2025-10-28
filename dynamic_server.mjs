@@ -228,7 +228,7 @@ app.get('/power-capacities', (req, res) => {
     });
 }); 
 
-\app.use((req, res) => {
+app.use((req, res) => {
     res.status(404).type('txt').send(`Error: 404 Not Found. The requested path '${req.originalUrl}' does not exist on this website.`);
 });
 
