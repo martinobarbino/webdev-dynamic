@@ -67,11 +67,23 @@ app.get('/countries/:country', (req, res) => {
             return sendErrorPage(res, 404, `Error: no data for country: ${countryName}`);
         }
 
-        const prevIndex = (currentIndex - 1 + countryNames.length) % countryNames.length;
-        const nextIndex = (currentIndex + 1) % countryNames.length;
+        let prevLink = '';
+        if (currentIndex > 0) {
+            prevLink = `<a href="/countries/${countryNames[currentIndex - 1].replace(/ /g, '-').toLowerCase()}">← Previous</a>`;
+        }
 
-        const prevLink = `/countries/${countryNames[prevIndex].replace(/ /g, '-').toLowerCase()}`;
-        const nextLink = `/countries/${countryNames[nextIndex].replace(/ /g, '-').toLowerCase()}`;
+        let nextLink = '';
+        if (currentIndex < countryNames.length - 1) {
+            nextLink = `<a href="/countries/${countryNames[currentIndex + 1].replace(/ /g, '-').toLowerCase()}">Next →</a>`;
+        }
+
+        let navHtml = '<div class="prev-next-nav">';
+        if (prevLink && nextLink) {
+            navHtml += `${prevLink} | ${nextLink}`;
+        } else {
+            navHtml += prevLink || nextLink;
+        }
+        navHtml += '</div>';
 
         db.all('SELECT * FROM Powerplants WHERE country = ?', [countryName], (err, rows) => {
         if (err) {
@@ -90,7 +102,6 @@ app.get('/countries/:country', (req, res) => {
                         powerplantList += `<tr><td>${plant.name}</td><td>${plant.capacity}</td><td>${plant.fuel1}</td></tr>`;
                     }
                     powerplantList += '</table>';
-                    const navHtml = `<div class="prev-next-nav"><a href="${prevLink}">← Previous | </a><a href="${nextLink}">Next →</a></div>`;
 
                     let page = data.replace(/%title%/g, countryName);
                     page = page.replace("%%flag-icon%%", countryToAlpha2(countryName).toLowerCase());
@@ -150,11 +161,23 @@ app.get('/fuel-types/:type', (req, res) => {
             return sendErrorPage(res, 404, `Error: no data for fuel type: ${fuelType}`);
         }
 
-        const prevIndex = (currentIndex - 1 + fuelTypeNames.length) % fuelTypeNames.length;
-        const nextIndex = (currentIndex + 1) % fuelTypeNames.length;
+        let prevLink = '';
+        if (currentIndex > 0) {
+            prevLink = `<a href="/fuel-types/${fuelTypeNames[currentIndex - 1].replace(/ /g, '-').toLowerCase()}">← Previous</a>`;
+        }
 
-        const prevLink = `/fuel-types/${fuelTypeNames[prevIndex].replace(/ /g, '-').toLowerCase()}`;
-        const nextLink = `/fuel-types/${fuelTypeNames[nextIndex].replace(/ /g, '-').toLowerCase()}`;
+        let nextLink = '';
+        if (currentIndex < fuelTypeNames.length - 1) {
+            nextLink = `<a href="/fuel-types/${fuelTypeNames[currentIndex + 1].replace(/ /g, '-').toLowerCase()}">Next →</a>`;
+        }
+
+        let navHtml = '<div class="prev-next-nav">';
+        if (prevLink && nextLink) {
+            navHtml += `${prevLink} | ${nextLink}`;
+        } else {
+            navHtml += prevLink || nextLink;
+        }
+        navHtml += '</div>';
 
         db.all('SELECT * FROM Powerplants WHERE fuel1 = ?', [fuelType], (err, rows) => {
         if (err) {
@@ -175,7 +198,6 @@ app.get('/fuel-types/:type', (req, res) => {
                     }
                     powerplantList += '</table>';
 
-                    const navHtml = `<div class="prev-next-nav"><a href="${prevLink}">← Previous</a> | <a href="${nextLink}">Next →</a></div>`;
 
                     let page = data.replace(/%%fuel-type%%/g, fuelType);
                     page = page.replace("%%img-src%%", `/images/${fuelSlug}.png`);
