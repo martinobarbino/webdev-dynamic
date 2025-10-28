@@ -159,14 +159,17 @@ app.get('/power-capacities/:range', (req, res) => {
         case 'low':
             query = 'SELECT * FROM Powerplants WHERE capacity BETWEEN 0 AND 7499 ORDER BY capacity';
             title = 'Low Capacity Power Plants';
+            prevNextNav = '| <a href="/fuel-capacities/medium">Next<a/>'
             break;
         case 'medium':
             query = 'SELECT * FROM Powerplants WHERE capacity BETWEEN 7499 AND 14998 ORDER BY capacity';
             title = 'Medium Capacity Power Plants';
+            prevNextNav = '<a href="/fuel-capacities/low">Prev<a/> | <a href="/fuel-capacities/high">Next<a/>'
             break;
         case 'high':
             query = 'SELECT * FROM Powerplants WHERE capacity > 14998 ORDER BY capacity';
             title = 'High Capacity Power Plants';
+            prevNextNav = '<a href="/fuel-capacities/medium">Prev<a/> |'
             break;
         default:
             res.status(404).type('txt').send('Invalid capacity range');
@@ -189,6 +192,7 @@ app.get('/power-capacities/:range', (req, res) => {
                     let page = data.replace(/%%capacity%%/g, title);
                     page = page.replace("%%img-src%%", `/images/${range}.png`);
                     page = page.replace("%%img-alt%%", `A graphic representing ${range} power capacity.`);
+                    page = page.replace("%%prev-next-nav%%", prevNextNav);
                     page = page.replace('%%powerplants%%', powerplantList);
                     res.status(200).type('html').send(page);
                 }
