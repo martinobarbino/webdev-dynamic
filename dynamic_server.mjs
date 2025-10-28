@@ -55,7 +55,6 @@ app.get('/countries/:country', (req, res) => {
     const countrySlug = req.params.country;
     const countryName = countrySlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
-    // First, get the full ordered list of all countries to determine previous/next
     db.all('SELECT DISTINCT country FROM Powerplants WHERE country IS NOT NULL AND country != "" ORDER BY country', (err, allCountries) => {
         if (err) {
             return sendErrorPage(res, 500, 'SQL Error getting country list');
@@ -68,7 +67,6 @@ app.get('/countries/:country', (req, res) => {
             return sendErrorPage(res, 404, `Error: no data for country: ${countryName}`);
         }
 
-        // Looping logic for previous and next
         const prevIndex = (currentIndex - 1 + countryNames.length) % countryNames.length;
         const nextIndex = (currentIndex + 1) % countryNames.length;
 
@@ -92,7 +90,7 @@ app.get('/countries/:country', (req, res) => {
                         powerplantList += `<tr><td>${plant.name}</td><td>${plant.capacity}</td><td>${plant.fuel1}</td></tr>`;
                     }
                     powerplantList += '</table>';
-                    const navHtml = `<div class="prev-next-nav"><a href="${prevLink}">← Previous</a><a href="${nextLink}">Next →</a></div>`;
+                    const navHtml = `<div class="prev-next-nav"><a href="${prevLink}">← Previous | </a><a href="${nextLink}">Next →</a></div>`;
 
                     let page = data.replace(/%title%/g, countryName);
                     page = page.replace("%%flag-icon%%", countryToAlpha2(countryName).toLowerCase());
@@ -140,7 +138,6 @@ app.get('/fuel-types/:type', (req, res) => {
         fuelType = 'Wave and Tidal';
     }
 
-    // First, get the full ordered list of all fuel types
     db.all('SELECT DISTINCT fuel1 FROM Powerplants WHERE fuel1 IS NOT NULL AND fuel1 != "" ORDER BY fuel1', (err, allFuelTypes) => {
         if (err) {
             return sendErrorPage(res, 500, 'SQL Error getting fuel type list');
@@ -153,7 +150,6 @@ app.get('/fuel-types/:type', (req, res) => {
             return sendErrorPage(res, 404, `Error: no data for fuel type: ${fuelType}`);
         }
 
-        // Looping logic for previous and next
         const prevIndex = (currentIndex - 1 + fuelTypeNames.length) % fuelTypeNames.length;
         const nextIndex = (currentIndex + 1) % fuelTypeNames.length;
 
@@ -179,7 +175,7 @@ app.get('/fuel-types/:type', (req, res) => {
                     }
                     powerplantList += '</table>';
 
-                    const navHtml = `<div class="prev-next-nav"><a href="${prevLink}">← Previous</a><a href="${nextLink}">Next →</a></div>`;
+                    const navHtml = `<div class="prev-next-nav"><a href="${prevLink}">← Previous</a> | <a href="${nextLink}">Next →</a></div>`;
 
                     let page = data.replace(/%%fuel-type%%/g, fuelType);
                     page = page.replace("%%img-src%%", `/images/${fuelSlug}.png`);
@@ -230,17 +226,17 @@ app.get('/power-capacities/:range', (req, res) => {
         case 'low':
             query = 'SELECT * FROM Powerplants WHERE capacity BETWEEN 0 AND 7499 ORDER BY capacity';
             title = 'Low Capacity Power Plants';
-            prevNextNav = '| <a href="/power-capacities/medium">Next</a>'
+            prevNextNav = '<div class="prev-next-nav"><a href="/power-capacities/medium">Next →</a></div>'
             break;
         case 'medium':
             query = 'SELECT * FROM Powerplants WHERE capacity BETWEEN 7499 AND 14998 ORDER BY capacity';
             title = 'Medium Capacity Power Plants';
-            prevNextNav = '<a href="/power-capacities/low">Prev</a> | <a href="/power-capacities/high">Next</a>'
+            prevNextNav = '<div class="prev-next-nav"><a href="/power-capacities/low">← Previous</a> | <a href="/power-capacities/high">Next →</a></div>'
             break;
         case 'high':
             query = 'SELECT * FROM Powerplants WHERE capacity > 14998 ORDER BY capacity';
             title = 'High Capacity Power Plants';
-            prevNextNav = '<a href="/power-capacities/medium">Prev</a> |'
+            prevNextNav = '<div class="prev-next-nav"><a href="/power-capacities/medium">← Previous</a></div>'
             break;
         default:
             sendErrorPage(res, 404, 'Invalid capacity range');
