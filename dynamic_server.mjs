@@ -32,8 +32,8 @@ app.get('/', (req, res) => {
                                  '<li><a href="/countries">Countries</a></li>' +
                                  '<li><a href="/power-capacities">Power Capacities</a></li>';
             let page = data.replace(/%%title%%/g, 'Powerplant Data');
-            page.replace('%%img-src%%', './public/images/powerplant.png');
-            page.replace("%%img-alt%%", 'A picture of a powerplant.');
+            page = page.replace('%%img-src%%', '/images/powerplant.png');
+            page = page.replace("%%img-alt%%", 'A picture of a powerplant.');
             page = page.replace('%%list%%', routes);
             res.status(200).type('html').send(page);
         }
@@ -83,7 +83,7 @@ app.get('/countries', (req, res) => {
                         countryList += `<li><a href="/countries/${slug}">${countryName}</a></li>\n`;
                     }
                     let page = data.replace(/%%title%%/g, 'Countries');
-                    page.replace('%%img-src%%', './public/images/countries.png');
+                    page.replace('%%img-src%%', '/images/countries.png');
                     page.replace("%%img-alt%%", 'A picture of the Earth.');
                     page = page.replace('%%list%%', countryList);
                     res.status(200).type('html').send(page);
@@ -135,7 +135,7 @@ app.get('/fuel-types', (req, res) => {
                         powerplantList += `<li><a href="/fuel-types/${slug}">${powerplantType}</a></li>\n`;
                     }
                     let page = data.replace(/%%title%%/g, 'Fuel Types');
-                    page.replace('%%img-src%%', './public/images/fuel-types.png');
+                    page.replace('%%img-src%%', '/images/fuel-types.png');
                     page.replace("%%img-alt%%", 'A picture of a powerplant.');
                     page = page.replace('%%list%%', powerplantList);
                     res.status(200).type('html').send(page);
@@ -199,7 +199,7 @@ app.get('/power-capacities', (req, res) => {
                                  '<li><a href="/power-capacities/medium">Medium</a></li>' +
                                  '<li><a href="/power-capacities/high">High</a></li>';
             let page = data.replace(/%%title%%/g, 'Capacity Levels');
-            page.replace('%%img-src%%', './public/images/power-capacities.png');
+            page.replace('%%img-src%%', '/images/power-capacities.png');
                     page.replace("%%img-alt%%", 'A picture of three power plants with different power capacities.');
             page = page.replace('%%list%%', capacityLevels);
             res.status(200).type('html').send(page);
