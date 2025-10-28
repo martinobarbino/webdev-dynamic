@@ -32,7 +32,7 @@ app.get('/powerplants/united-states-of-america', (req, res) => {
 });
 
 app.get('/countries', (req, res) => {
-    db.all('SELECT DISTINCT country_long FROM Powerplants ORDER BY country_long', (err, rows) => {
+    db.all('SELECT DISTINCT country FROM Powerplants ORDER BY country', (err, rows) => {
         if (err) {
             res.status(500).type('txt').send('SQL Error');
         } else {
@@ -42,7 +42,7 @@ app.get('/countries', (req, res) => {
                 } else {
                     let countryList = '';
                     for (const country of rows) {
-                        const countryName = country.country_long;
+                        const countryName = country.country;
                         const iso2 = getCountryISO2(countryName)?.toLowerCase() || '';
                         const slug = countryName.replace(/ /g, '-').toLowerCase();
                         countryList += `<li><span class="fi fi-${iso2}"></span> <a href="/powerplants/${slug}">${countryName}</a></li>\n`;
