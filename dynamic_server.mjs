@@ -22,16 +22,17 @@ const db = new sqlite3.Database('./db.sqlite3', sqlite3.OPEN_READONLY, (err) => 
         
 });
 
- app.get('/', (req, res) => {
-        db.all('SELECT * FROM Powerplants', (err, rows) => {
-            if (err) {
-                res.status(500).type('txt').send('SQL Error');
-            }
-            else {
-                res.status(200).type('json').send(JSON.stringify(rows));
-            }
-        });
+app.get('/', (req, res) => {
+    db.all('SELECT * FROM Powerplants', (err, rows) => {
+        if (err) {
+            res.status(500).type('txt').send('SQL Error');
+        }
+        else {
+            res.status(200).type('json').send(JSON.stringify(rows));
+        }
+        res.sendFile(path.join(template, 'temp.html'));
     });
+}); 
 
 app.listen(port, () => {
     console.log('Now listening on port ' + port);
