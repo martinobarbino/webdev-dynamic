@@ -105,7 +105,7 @@ app.get('/fuel-types/:type', (req, res) => {
                         powerplantList += `<tr><td>${plant.name}</td><td>${plant.country}</td><td>${plant.capacity}</td></tr>`;
                     }
                     powerplantList += '</table>';
-                    let page = data.replace(/%%country%%/g, fuelType);
+                    let page = data.replace(/%%fuel-type%%/g, fuelType);
                     page = page.replace('%%powerplants%%', powerplantList);
                     res.status(200).type('html').send(page);
                 }
