@@ -23,14 +23,32 @@ const db = new sqlite3.Database('./db.sqlite3', sqlite3.OPEN_READONLY, (err) => 
 });
 
 app.get('/', (req, res) => {
-    db.all('SELECT * FROM Powerplants', (err, rows) => {
+    res.redirect('/powerplants/united-states-of-america');
+}); 
+
+app.get('/powerplants/:country', (req, res) => {
+    const countrySlug = req.params.country;
+    const countryName = countrySlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+    db.all('SELECT * FROM Powerplants WHERE country_long = ?', [countryName], (err, rows) => {
         if (err) {
             res.status(500).type('txt').send('SQL Error');
+        } else {
+            fs.readFile(path.join(template, 'energy-type.html'), 'utf-8', (err, data) => {
+                if (err) {
+                    res.status(500).type('txt').send('File Error');
+                } else {
+                    let powerplantList = '<table><tr><th>Name</th><th>Capacity (MW)</th><th>Primary Fuel</th></tr>';
+                    for (const plant of rows) {
+                        powerplantList += `<tr><td>${plant.name}</td><td>${plant.capacity_mw}</td><td>${plant.primary_fuel}</td></tr>`;
+                    }
+                    powerplantList += '</table>';
+                    let page = data.replace('%%country%%', countryName);
+                    page = page.replace('%%powerplants%%', powerplantList);
+                    res.status(200).type('html').send(page);
+                }
+            });
         }
-        else {
-            res.status(200).type('json').send(JSON.stringify(rows));
-        }
-        res.sendFile(path.join(template, 'temp.html'));
     });
 }); 
 
