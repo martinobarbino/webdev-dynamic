@@ -31,7 +31,8 @@ app.get('/', (req, res) => {
             const routes = '<li><a href="/powerplants">Powerplants</a></li>' +
                                  '<li><a href="/countries">Countries</a></li>' +
                                  '<li><a href="/power-capacities">Power Capacities</a></li>';
-            let page = data.replace(/%%title%%/g, 'Data');
+            let page = data.replace('%%title%%', 'Powerplant Data');
+            page = data.replace('%%title%%', 'Powerplant Data');
             page = page.replace('%%list%%', routes);
             res.status(200).type('html').send(page);
         }
