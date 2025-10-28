@@ -36,7 +36,7 @@ app.get('/countries', (req, res) => {
         if (err) {
             res.status(500).type('txt').send('SQL Error');
         } else {
-            fs.readFile(path.join(template, 'country.html'), 'utf-8', (err, data) => {
+            fs.readFile(path.join(template, 'list-pages.html'), 'utf-8', (err, data) => {
                 if (err) {
                     res.status(500).type('txt').send('File Error');
                 } else {
@@ -47,7 +47,8 @@ app.get('/countries', (req, res) => {
                         const slug = countryName.replace(/ /g, '-').toLowerCase();
                         countryList += `<li><span class="fi fi-${iso2}"></span> <a href="/powerplants/${slug}">${countryName}</a></li>\n`;
                     }
-                    const page = data.replace('%%countries%%', countryList);
+                    let page = data.replace('%%title%%', 'Countries');
+                    page = page.replace('%%list%%', countryList);
                     res.status(200).type('html').send(page);
                 }
             });
