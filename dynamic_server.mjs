@@ -15,11 +15,9 @@ const template = path.join(__dirname, 'templates');
 let app = express();
 app.use(express.static(root));
 
-// Helper function to send an error page
 function sendErrorPage(res, statusCode, errorMessage) {
     fs.readFile(path.join(template, 'error.html'), 'utf-8', (err, data) => {
         if (err) {
-            // Fallback if error.html itself is not found
             res.status(500).type('txt').send('A server error occurred and the error page could not be displayed.');
         } else {
             let page = data.replace('%%error-message%%', errorMessage);
@@ -181,17 +179,17 @@ app.get('/power-capacities/:range', (req, res) => {
         case 'low':
             query = 'SELECT * FROM Powerplants WHERE capacity BETWEEN 0 AND 7499 ORDER BY capacity';
             title = 'Low Capacity Power Plants';
-            prevNextNav = '| <a href="/power-capacities/medium">Next<a/>'
+            prevNextNav = '| <a href="/power-capacities/medium">Next</a>'
             break;
         case 'medium':
             query = 'SELECT * FROM Powerplants WHERE capacity BETWEEN 7499 AND 14998 ORDER BY capacity';
             title = 'Medium Capacity Power Plants';
-            prevNextNav = '<a href="/power-capacities/low">Prev<a/> | <a href="/power-capacities/high">Next<a/>'
+            prevNextNav = '<a href="/power-capacities/low">Prev</a> | <a href="/power-capacities/high">Next</a>'
             break;
         case 'high':
             query = 'SELECT * FROM Powerplants WHERE capacity > 14998 ORDER BY capacity';
             title = 'High Capacity Power Plants';
-            prevNextNav = '<a href="/power-capacities/medium">Prev<a/> |'
+            prevNextNav = '<a href="/power-capacities/medium">Prev</a> |'
             break;
         default:
             sendErrorPage(res, 404, 'Invalid capacity range');
