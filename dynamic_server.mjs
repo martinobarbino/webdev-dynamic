@@ -160,6 +160,7 @@ app.get('/power-capacities/:range', (req, res) => {
     const range = req.params.range;
     let query = '';
     let title = '';
+    let prevNextNav = '';
 
     switch (range) {
         case 'low':
@@ -201,7 +202,7 @@ app.get('/power-capacities/:range', (req, res) => {
                     let page = data.replace(/%%capacity%%/g, title);
                     page = page.replace("%%img-src%%", `/images/${range}.png`);
                     page = page.replace("%%img-alt%%", `A graphic representing ${range} power capacity.`);
-                    page = page.replace("%%prev-next-nav%%", prevNextNav)
+                    page = page.replace("%%prev-next-nav%%", prevNextNav);
                     page = page.replace('%%powerplants%%', powerplantList);
                     res.status(200).type('html').send(page);
                 }
