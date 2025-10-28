@@ -174,7 +174,7 @@ app.get('/power-capacities/:range', (req, res) => {
                         powerplantList += `<tr><td>${plant.name}</td><td>${plant.country}</td><td>${plant.capacity}</td></tr>`;
                     }
                     powerplantList += '</table>';
-                    let page = data.replace('%%capacity%%', title);
+                    let page = data.replace(/%%capacity%%/g, title);
                     page = page.replace('%%powerplants%%', powerplantList);
                     res.status(200).type('html').send(page);
                 }
