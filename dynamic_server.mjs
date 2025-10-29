@@ -55,7 +55,7 @@ app.get('/', (req, res) => {
 
 app.get('/countries/:country', (req, res) => {
     const countrySlug = req.params.country;
-    const countryName = countrySlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    const countryName = capitalizeTitle(countrySlug.replace(/-/g, ' '));
 
     db.all('SELECT DISTINCT country FROM Powerplants WHERE country IS NOT NULL AND country != "" ORDER BY country', (err, allCountries) => {
         if (err) {
@@ -87,7 +87,7 @@ app.get('/countries/:country', (req, res) => {
         }
         navHtml += '</div>';
 
-        db.all('SELECT * FROM Powerplants WHERE country = ?', [capitalizeTitle(countryName)], (err, rows) => {
+        db.all('SELECT * FROM Powerplants WHERE country = ?', [countryName], (err, rows) => {
         if (err) {
             sendErrorPage(res, 500, 'SQL Error');
         } else {
@@ -145,11 +145,7 @@ app.get('/countries', (req, res) => {
 
 app.get('/fuel-types/:type', (req, res) => {
     const fuelSlug = req.params.type;
-    let fuelType = fuelSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-
-    if (fuelType === 'Wave And Tidal') {
-        fuelType = 'Wave and Tidal';
-    }
+    let fuelType = capitalizeTitle(fuelSlug.replace(/-/g, ' '));
 
     db.all('SELECT DISTINCT fuel1 FROM Powerplants WHERE fuel1 IS NOT NULL AND fuel1 != "" ORDER BY fuel1', (err, allFuelTypes) => {
         if (err) {
