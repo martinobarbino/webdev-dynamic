@@ -244,17 +244,17 @@ app.get('/power-capacities/:range', (req, res) => {
 
     switch (range) {
         case 'low':
-            query = 'SELECT * FROM Powerplants WHERE capacity BETWEEN 0 AND 7499 ORDER BY capacity';
+            query = 'SELECT * FROM Powerplants WHERE capacity BETWEEN 0 AND 50 ORDER BY capacity';
             title = 'Low Capacity Power Plants';
             prevNextNav = '<div class="prev-next-nav"><a href="/power-capacities/medium">Next →</a></div>'
             break;
         case 'medium':
-            query = 'SELECT * FROM Powerplants WHERE capacity BETWEEN 7499 AND 14998 ORDER BY capacity';
+            query = 'SELECT * FROM Powerplants WHERE capacity BETWEEN 51 AND 500 ORDER BY capacity';
             title = 'Medium Capacity Power Plants';
             prevNextNav = '<div class="prev-next-nav"><a href="/power-capacities/low">← Previous</a> | <a href="/power-capacities/high">Next →</a></div>'
             break;
         case 'high':
-            query = 'SELECT * FROM Powerplants WHERE capacity > 14998 ORDER BY capacity';
+            query = 'SELECT * FROM Powerplants WHERE capacity > 500 ORDER BY capacity';
             title = 'High Capacity Power Plants';
             prevNextNav = '<div class="prev-next-nav"><a href="/power-capacities/medium">← Previous</a></div>'
             break;
@@ -310,6 +310,14 @@ app.get('/visualizations', (req, res) => {
         ORDER BY plant_count DESC;
     `;
 
+    const fuelCapacityQuery = `
+        SELECT fuel1, SUM(capacity) as total_capacity
+        FROM Powerplants
+        WHERE fuel1 IS NOT NULL AND fuel1 != ''
+        GROUP BY fuel1
+        ORDER BY total_capacity DESC;
+    `;
+
     const promise1 = new Promise((resolve, reject) => {
         db.all(countriesQuery, (err, rows) => err ? reject(err) : resolve(rows));
     });
@@ -318,7 +326,11 @@ app.get('/visualizations', (req, res) => {
         db.all(fuelTypesQuery, (err, rows) => err ? reject(err) : resolve(rows));
     });
 
-    Promise.all([promise1, promise2]).then(([countriesRows, fuelTypesRows]) => {
+    const promise3 = new Promise((resolve, reject) => {
+        db.all(fuelCapacityQuery, (err, rows) => err ? reject(err) : resolve(rows));
+    });
+
+    Promise.all([promise1, promise2, promise3]).then(([countriesRows, fuelTypesRows, fuelCapacityRows]) => {
         fs.readFile(path.join(template, 'visualization.html'), 'utf-8', (err, data) => {
             if (err) {
                 return sendErrorPage(res, 500, 'File Error');
@@ -377,9 +389,41 @@ app.get('/visualizations', (req, res) => {
                 </script>
             `;
 
+            const fuelCapacityLabels = fuelCapacityRows.map(row => row.fuel1);
+            const fuelCapacityData = fuelCapacityRows.map(row => row.total_capacity);
+            const fuelCapacityChartScript = `
+                <script>
+                    const ctxFuelCapacity = document.getElementById('fuel-capacity-chart').getContext('2d');
+                    new Chart(ctxFuelCapacity, {
+                        type: 'pie',
+                        data: {
+                            labels: ${JSON.stringify(fuelCapacityLabels)},
+                            datasets: [{
+                                label: 'Total Capacity (MW)',
+                                data: ${JSON.stringify(fuelCapacityData)},
+                                backgroundColor: [
+                                    'rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 206, 86, 0.2)',
+                                    'rgba(75, 192, 192, 0.2)', 'rgba(153, 102, 255, 0.2)', 'rgba(255, 159, 64, 0.2)',
+                                    'rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 206, 86, 0.2)',
+                                    'rgba(75, 192, 192, 0.2)', 'rgba(153, 102, 255, 0.2)', 'rgba(255, 159, 64, 0.2)'
+                                ],
+                                borderColor: [
+                                    'rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)',
+                                    'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)',
+                                    'rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)',
+                                    'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)'
+                                ],
+                                borderWidth: 1
+                            }]
+                        }
+                    });
+                </script>
+            `;
+
             let page = data.replace(/%%title%%/g, 'Data Visualizations');
             page = page.replace('%%countries-chart-script%%', countriesChartScript);
             page = page.replace('%%fuel-types-chart-script%%', fuelTypesChartScript);
+            page = page.replace('%%fuel-capacity-chart-script%%', fuelCapacityChartScript);
             res.status(200).type('html').send(page);
         });
     }).catch(err => {
