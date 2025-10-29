@@ -2,6 +2,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as url from 'node:url';
 
+import capitalizeTitle from 'capitalize-title';
 import { default as express } from 'express';
 import { default as sqlite3 } from 'sqlite3';
 import { countryToAlpha2 } from "country-to-iso";
@@ -86,7 +87,7 @@ app.get('/countries/:country', (req, res) => {
         }
         navHtml += '</div>';
 
-        db.all('SELECT * FROM Powerplants WHERE country = ?', [countryName], (err, rows) => {
+        db.all('SELECT * FROM Powerplants WHERE country = ?', [capitalizeTitle(countryName)], (err, rows) => {
         if (err) {
             sendErrorPage(res, 500, 'SQL Error');
         } else {
